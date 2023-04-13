@@ -1,1 +1,5 @@
-streamlit
+streamlit==1.18
+streamlit-authenticator==0.2.1
+git+https://github.com/keboola/sapi-python-client.git
+pandas==1.4
+plotly==5.9.0
