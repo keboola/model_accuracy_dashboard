@@ -16,4 +16,5 @@ KEBOOLA_TOKEN = st.secrets["kbc_token"]
 keboola_client = Client(KEBOOLA_STACK, KEBOOLA_TOKEN)
 
 # tables 
-MEALS_TABLE = 'out.c-accuracy_monitoring.accuracy_monitoring_meals'
+ACCURACY_MONITORING_MEALS_TAB = 'out.c-accuracy_monitoring.accuracy_monitoring_meals'
+ACCURACY_MONITORING_TAB = 'out.c-accuracy_monitoring.accuracy_monitoring'
