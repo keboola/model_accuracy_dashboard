@@ -49,7 +49,6 @@ if authentication_status:
     
     df_meals = read_df(ACCURACY_MONITORING_MEALS_TAB, date_col=["approximate_timestamp"])
     df_accuracy = read_df(ACCURACY_MONITORING_TAB, date_col=["ds"])
-
     cat1, cat2, cat3 = calculate_categories(df_meals)
     
     with st.sidebar:
@@ -58,10 +57,12 @@ if authentication_status:
         outlet_type = st.selectbox("Outlet Type", cat2)
         outlet_number = st.selectbox("Outlet Number", cat3)
         category_selected = '~'.join([category_type, outlet_type, outlet_number])
-        
+    
+    #st.dataframe(df_meals.head())
     meals_preprocessed = preprocess_data(df_meals, category_selected)
+    #st.dataframe(meals_preprocessed)
     accu_preprocessed = preprocess_data(df_accuracy, category_selected, time_col='ds')
-
+    #st.dataframe(accu_preprocessed)
 
     with st.sidebar:
         start_date, end_date = st.slider(
@@ -69,20 +70,33 @@ if authentication_status:
             value=(meals_preprocessed.dt.min().date(), meals_preprocessed.dt.max().date()), 
             format="MM/DD/YY"
             )
-    
+        sc1, sc2 = st.columns(2)
+        with sc1:
+            start_date2 = st.date_input("startdate")
+        with sc2:
+            end_date2 = st.date_input("enddate")
+
     start_date = pd.to_datetime(start_date)
-    end_date = pd.to_datetime(end_date)    
+    end_date = pd.to_datetime(end_date)     
     meals_preprocessed_filtered = filter_by_date(meals_preprocessed, start_date, end_date)
     accu_preprocessed_filtered = filter_by_date(accu_preprocessed, start_date, end_date)
         
+    with st.container():
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Nb. Correct Forecasts", "70 °F", "1.2 °F")
+        with col2:
+            st.metric("Nb. Correct Forecasts", "70 °F", "1.2 °F")
+
     col1, col2 = st.columns(2)
     with col1:
         figure, raw_data = st.tabs(["figure", "raw_data"])
         with figure:
+            #st.write(meals_preprocessed_filtered.head())
             fig1 = create_series_plot_meals(meals_preprocessed_filtered)
             st.plotly_chart(fig1, use_container_width=True)
         with raw_data:
-            st.dataframe(meals_preprocessed_filtered.loc[meals_preprocessed_filtered.meal_category!=0])
+            st.dataframe(meals_preprocessed_filtered)
     with col2:
         figure, raw_data = st.tabs(["figure", "raw_data"])
         with figure:
