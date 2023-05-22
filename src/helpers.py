@@ -9,6 +9,7 @@ Created on Thu Apr 13 13:12:30 2023
 import streamlit as st
 from src.settings import keboola_client
 import pandas as pd
+import numpy as np
 
 def parse_credentials():
     """
@@ -81,10 +82,55 @@ def calculate_categories(original_dataframe):
     cat3 = split_series[2].unique()
     return cat1, cat2, cat3
 
+@st.cache_data
+def group_accuracy_df(dataframe):
+    dfgrouped = dataframe.groupby(["date", "category", "meal_category"])[["metric_actual", "metric_forecast", "metric_forecast_lgbm", "metric_forecast_rf"]].sum().reset_index()
+    dfgrouped["AE_prophet"]= np.abs(dfgrouped["metric_actual"] - dfgrouped["metric_forecast"])
+    dfgrouped["AE_lgbm"]= np.abs(dfgrouped["metric_actual"] - dfgrouped["metric_forecast_lgbm"])
+    dfgrouped["AE_rf"]= np.abs(dfgrouped["metric_actual"] - dfgrouped["metric_forecast_rf"])
+    dfgrouped["PE_prophet"] = 100 * dfgrouped["AE_prophet"] / dfgrouped["metric_actual"]
+    dfgrouped["PE_lgbm"] = 100 * dfgrouped["AE_lgbm"] / dfgrouped["metric_actual"]
+    dfgrouped["PE_rf"] = 100 * dfgrouped["AE_rf"] / dfgrouped["metric_actual"]
+    return dfgrouped
+
+def create_summary_table(dataframe, start_date, end_date):
+    dataframe = group_accuracy_df(dataframe)
+    dfgrouped = dataframe.groupby(["date", "category", "meal_category"])[["metric_actual", "metric_forecast", "metric_forecast_lgbm", "metric_forecast_rf"]].sum().reset_index()
+    dfgrouped["AE_prophet"]= np.abs(dfgrouped["metric_actual"] - dfgrouped["metric_forecast"])
+    dfgrouped["AE_lgbm"]= np.abs(dfgrouped["metric_actual"] - dfgrouped["metric_forecast_lgbm"])
+    dfgrouped["AE_rf"]= np.abs(dfgrouped["metric_actual"] - dfgrouped["metric_forecast_rf"])
+    dfgrouped["PE_prophet"] = 100 * dfgrouped["AE_prophet"] / dfgrouped["metric_actual"]
+    dfgrouped["PE_lgbm"] = 100 * dfgrouped["AE_lgbm"] / dfgrouped["metric_actual"]
+    dfgrouped["PE_rf"] = 100 * dfgrouped["AE_rf"] / dfgrouped["metric_actual"]
+    df_filtered = dfgrouped.loc[(dfgrouped.date<=start_date) & (dfgrouped.date<end_date)]
+
+    cols = ["metric_actual", 
+            "metric_forecast", 
+            "metric_forecast_lgbm", 
+            "metric_forecast_rf",
+            "PE_prophet",
+            "PE_lgbm",
+            "PE_rf"
+           ]
+
+    dff_grouped = df_filtered.groupby(["category", "meal_category"])[cols]
+    summary_df = dff_grouped.agg(
+        mean_pcnt_e_prophet=pd.NamedAgg(column="PE_prophet", aggfunc="mean"),
+        mean_pcnt_e_lgbm=pd.NamedAgg(column="PE_lgbm", aggfunc="mean"),
+        mean_pcnt_e_rf= pd.NamedAgg(column="PE_rf", aggfunc="mean"),       
+        ).reset_index()
+    summary_df.pivot(columns=["meal_category"], index=["category"])
+    summary_pivot_df = summary_df.pivot_table(columns=["meal_category"], index=["category"])
+    colnames = ['_'.join([c1, c2]) for c1, c2 in summary_df.pivot_table(columns=["meal_category"], index=["category"]).columns]
+    summary_pivot_df.columns=colnames
+    summary_pivot_df["prophet_mean"] = (summary_pivot_df["mean_pcnt_e_prophet_lunch"] + summary_pivot_df["mean_pcnt_e_prophet_dinner"]) / 2
+    summary_pivot_df["lgbm_mean"] = (summary_pivot_df["mean_pcnt_e_lgbm_lunch"] + summary_pivot_df["mean_pcnt_e_lgbm_dinner"]) / 2
+    summary_pivot_df["rf_mean"] = (summary_pivot_df["mean_pcnt_e_rf_lunch"] + summary_pivot_df["mean_pcnt_e_rf_dinner"]) / 2
+    
+    summary_pivot_df.sort_values(by="prophet_mean", inplace=True)
 
 
-
-
+    return summary_pivot_df
 
 
 
