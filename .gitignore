@@ -1,3 +1,6 @@
 .spyproject
 accuracy_monitoring
 accuracy_monitoring_meals
+.streamlit
+actuals_nonagg
+src/__pycache__
