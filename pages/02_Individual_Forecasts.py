@@ -29,17 +29,28 @@ if st.session_state["authentication_status"]:
     with st.sidebar:
         sc1, sc2 = st.columns(2)
         with sc1:
+            if "start_date" in st.session_state:
+                value = st.session_state["start_date"]
+            else:
+                value = df_accuracy.ds.min().date()
+
             start_date = st.date_input("Start Date", 
-                                        value=accu_preprocessed.dt.min().date(),
+                                        value=value,
                                         min_value=accu_preprocessed.dt.min().date(), 
                                         max_value=accu_preprocessed.dt.max().date()
                                         )
+            st.session_state["start_date"] = start_date
         with sc2:
+            if "end_date" in st.session_state:
+                value = st.session_state["end_date"]
+            else:
+                value = df_accuracy.ds.max().date()
+
             end_date = st.date_input("End Date", 
-                                        value=accu_preprocessed.dt.max().date(),
+                                        value=value,
                                         min_value=start_date, 
                                         max_value=accu_preprocessed.dt.max().date())
-
+            st.session_state["end_date"] = end_date
     start_date = pd.to_datetime(start_date)
     # we need to include the last date of selection
 
