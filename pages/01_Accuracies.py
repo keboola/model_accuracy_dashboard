@@ -10,13 +10,12 @@ import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
 from src.helpers import read_df, create_summary_table
 from src.settings import ACCURACY_MONITORING_TAB
+import datetime
 
 if 'authentication_status' not in st.session_state:
     switch_page("login")
 
 df_accuracy = read_df(ACCURACY_MONITORING_TAB, date_col=["ds"])
-
-#st.session_state["df_accuracy"]=df_accuracy
 
 with st.sidebar:
     sc1, sc2 = st.columns(2)
@@ -32,7 +31,8 @@ with st.sidebar:
                                     min_value=start_date, 
                                     max_value=df_accuracy.ds.max().date())
 
-
+# we need to include the last date of selection
+end_date = end_date + datetime.timedelta(days=1)
 summary_df = create_summary_table(df_accuracy, str(start_date), str(end_date))
 
 def color_negative_red(value):
@@ -52,9 +52,7 @@ def color_negative_red(value):
 
   return 'color: %s' % color
 
-
-
-st.markdown("### Average percentage error over defined period")
+st.markdown("### Mean Average Percentage Error (MAPE) over defined period")
 
 t1, t2 = st.tabs(["Summary", "Detailed"])
 

@@ -16,19 +16,14 @@ import datetime
 def preprocess_data(original_dataframe:pd.DataFrame, category, time_col='approximate_timestamp', freq='1H'):
     
     FILTER = (original_dataframe.category==category)
-    #st.dataframe(original_dataframe)
     df = original_dataframe.copy().loc[FILTER]
-    #st.dataframe(df)
     dates_filled = pd.date_range(start=df[time_col].min(), end=df[time_col].max(), freq=freq)
     df.reset_index(drop=True, inplace=True)
     df.set_index(time_col, inplace=True)
     df.sort_index(inplace=True)
-    #st.dataframe(df)
     df = df.reindex(dates_filled, fill_value=0)
     df.reset_index(inplace=True)
     df.rename(columns={"index":"dt"}, inplace=True)
-    #df.sort_values(by=time_col, inplace=True)
-    #df.rename(columns={time_col:"dt"}, inplace=True)
     return df
 
 def filter_by_date(dataframe:pd.DataFrame, date_start:datetime.date, date_end:datetime.date):
@@ -84,6 +79,7 @@ def create_series_plot_basic(dataframe:pd.DataFrame, dataframe_actuals:pd.DataFr
     return fig
 
 def create_series_plot_new(dataframe:pd.DataFrame):
+    
     fig = go.Figure()
     fig.update_layout(
         title={"text":'Pizza Hut - Actual vs Forecasted Sales'}
