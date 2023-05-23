@@ -70,10 +70,11 @@ t1, t2 = st.tabs(["Summary", "Detailed"])
 cols = ["prophet_mean", "lgbm_mean", "rf_mean"]
 
 with t1:
-    st.dataframe(summary_df[cols].style.applymap(color_negative_red))
+    st.dataframe(summary_df[cols].style.applymap(color_negative_red).format('{:.2f} %'))
+
 with t2:
     cols = [c for c in summary_df.columns if not c.endswith("_mean")]
-    st.dataframe(summary_df[cols].style.applymap(color_negative_red))
+    st.dataframe(summary_df[cols].style.applymap(color_negative_red).format('{:.2f} %'))
 
 
 
