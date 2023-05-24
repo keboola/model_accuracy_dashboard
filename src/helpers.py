@@ -7,7 +7,7 @@ Created on Thu Apr 13 13:12:30 2023
 """
 
 import streamlit as st
-from src.settings import keboola_client
+from src.settings import keboola_client, STREAMLIT_BUCKET_ID
 import pandas as pd
 import numpy as np
 
@@ -165,7 +165,85 @@ def create_summary_table(dataframe, start_date, end_date):
 
     return summary_pivot_df
 
+def create_or_update_table(table_name,
+        keboola_client=keboola_client,
+        bucket_id=STREAMLIT_BUCKET_ID,
+        file_path='.default_model.csv',
+        is_incremental=True, 
+        delimiter=',',
+        enclosure='"', 
+        escaped_by='', 
+        columns=["category"],
+        without_headers=False):
+    """
+    The function creates or incrementally updates the mapping table. 
+    Mapping table should be keyed by hash(config_id+class)
 
+    Parameters
+    ----------
+    table_name : TYPE
+        DESCRIPTION.
+    keboola_client : TYPE, optional
+        DESCRIPTION. The default is keboola_client.
+    bucket_id : TYPE, optional
+        DESCRIPTION. The default is 'out.c-create_configs'.
+    file_path : TYPE, optional
+        DESCRIPTION. The default is '.mapping.csv'.
+    # define primary key        is_incremental : TYPE, optional
+        DESCRIPTION. The default is False.
+    delimiter : TYPE, optional
+        DESCRIPTION. The default is ','.
+    enclosure : TYPE, optional
+        DESCRIPTION. The default is '"'.
+    escaped_by : TYPE, optional
+        DESCRIPTION. The default is ''.
+    columns : TYPE, optional
+        DESCRIPTION. The default is None.
+    without_headers : TYPE, optional
+        DESCRIPTION. The default is False.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+    
+    # check whether a table in the bucket exists. If so, retrieve its table_id
+    try:
+        try:
+            tables = keboola_client.tables.list()
+
+        except Exception as e:
+            return str(e)
+        # there will be 0 or 1 hit
+        table_def = list(filter(lambda x: x['bucket']['id']==bucket_id and x['name']==table_name, tables))
+        if table_def:
+            table_id = table_def[0]['id']
+            # table already exists --> load
+            try:
+                _= keboola_client.tables.load(table_id=table_id,
+                                    file_path=file_path,
+                                    is_incremental=is_incremental, 
+                                    delimiter=delimiter,
+                                    enclosure=enclosure, 
+                                    escaped_by=escaped_by,
+                                    columns=columns,
+                                    without_headers=without_headers) 
+                return True, f"{table_name} table has been updated."
+            except Exception as e:
+                return False, str(e)    
+        else:
+            # table does not exist --> create
+            try:
+                return True, keboola_client.tables.create(name=table_name,
+                                    bucket_id=bucket_id,
+                                    file_path=file_path,
+                                    primary_key=columns) + " table has been successfully created!!"
+            except Exception as e:
+                return False, str(e)   
+    except Exception as e:
+        return False, str(e)             
 
 
 

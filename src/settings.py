@@ -18,3 +18,4 @@ keboola_client = Client(KEBOOLA_STACK, KEBOOLA_TOKEN)
 ACCURACY_MONITORING_MEALS_TAB = 'out.c-accuracy_monitoring.accuracy_monitoring_meals'
 ACCURACY_MONITORING_TAB = 'out.c-accuracy_monitoring.accuracy_monitoring'
 ACTUALS_NONAGG_TAB = 'out.c-accuracy_monitoring.actuals_nonagg'
+STREAMLIT_BUCKET_ID = 'out.c-streamlit_out'

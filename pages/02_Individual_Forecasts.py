@@ -13,10 +13,10 @@ if 'authentication_status' not in st.session_state:
 
 if st.session_state["authentication_status"]:
     
-    df_meals = read_df(ACCURACY_MONITORING_MEALS_TAB, date_col=["approximate_timestamp"])
+    #df_meals = read_df(ACCURACY_MONITORING_MEALS_TAB, date_col=["approximate_timestamp"])
     df_accuracy = read_df(ACCURACY_MONITORING_TAB, date_col=["ds"])
-    df_actuals = read_df(ACTUALS_NONAGG_TAB, date_col=["ds"])
-    cat1, cat2, cat3 = calculate_categories(df_meals)
+    #df_actuals = read_df(ACTUALS_NONAGG_TAB, date_col=["ds"])
+    cat1, cat2, cat3 = calculate_categories(df_accuracy)
     
     with st.sidebar:
         category_type = st.selectbox("Category Type", cat1)
