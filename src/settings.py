@@ -19,3 +19,11 @@ ACCURACY_MONITORING_MEALS_TAB = 'out.c-accuracy_monitoring.accuracy_monitoring_m
 ACCURACY_MONITORING_TAB = 'out.c-accuracy_monitoring.accuracy_monitoring'
 ACTUALS_NONAGG_TAB = 'out.c-accuracy_monitoring.actuals_nonagg'
 STREAMLIT_BUCKET_ID = 'out.c-streamlit_out'
+DEFAULT_MODEL_TAB = 'out.c-streamlit_out.default_model'
+
+# color coding
+
+colors = {}
+colors["Prophet"] = "blue"
+colors["Random Forest"] = "red"
+colors["LightGBM"] = "green"

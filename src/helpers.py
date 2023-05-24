@@ -10,6 +10,8 @@ import streamlit as st
 from src.settings import keboola_client, STREAMLIT_BUCKET_ID
 import pandas as pd
 import numpy as np
+import datetime
+import csv
 
 def parse_credentials():
     """
@@ -131,7 +133,7 @@ def group_accuracy_df(dataframe):
     dfgrouped["APE_rf"]= np.abs((dfgrouped["metric_actual"] - dfgrouped["metric_forecast_rf"])/dfgrouped["metric_actual"])
     return dfgrouped
 
-def create_summary_table(dataframe, start_date, end_date):
+def create_summary_table(dataframe, default_model, start_date, end_date):
     dfgrouped = group_accuracy_df(dataframe)
     df_filtered = dfgrouped.loc[(dfgrouped.date>=start_date) & (dfgrouped.date<=end_date)]
 
@@ -161,7 +163,9 @@ def create_summary_table(dataframe, start_date, end_date):
     summary_pivot_df["rf_mean"] = (summary_pivot_df["mape_rf_lunch"] + summary_pivot_df["mape_rf_dinner"]) / 2
     
     summary_pivot_df.sort_values(by="prophet_mean", inplace=True)
-
+    summary_pivot_df.reset_index(inplace=True)
+    summary_pivot_df = pd.merge(summary_pivot_df, default_model, on="category")
+    summary_pivot_df.set_index("category", inplace=True)
 
     return summary_pivot_df
 
@@ -247,9 +251,37 @@ def create_or_update_table(table_name,
 
 
 
+def update_default_model(model_name, category, file='.default_model.csv'):
+    """
+    
 
+    Parameters
+    ----------
+    model_name : string
+        model name coming from selectbox.
+    category : string
+        category as defined in the project.
 
+    Returns
+    -------
+    None.
 
+    """
+    timestamp = datetime.datetime.now()
+
+    update = {
+        "category":category,
+        "default_model":model_name,
+        "updated_timestamp":timestamp
+        }
+    
+    field_names = update.keys()
+    with open(file, 'w') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames = field_names)
+        writer.writeheader()
+        writer.writerows([update])
+    
+    return None
 
 
 

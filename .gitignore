@@ -4,3 +4,5 @@ accuracy_monitoring_meals
 .streamlit
 actuals_nonagg
 src/__pycache__/*
+.default_model.csv
+default_model

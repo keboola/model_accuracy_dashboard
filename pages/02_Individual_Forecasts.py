@@ -1,9 +1,11 @@
 import streamlit as st
-from src.settings import ACCURACY_MONITORING_MEALS_TAB, ACCURACY_MONITORING_TAB, ACTUALS_NONAGG_TAB
+from src.settings import ACCURACY_MONITORING_TAB, colors
 from src.graphs import preprocess_data, create_series_plot_new
 from src.graphs import filter_by_date
 from src.helpers import read_df, calculate_categories
 from src.helpers import MAPE
+from src.helpers import update_default_model
+from src.helpers import create_or_update_table
 import pandas as pd
 from streamlit_extras.switch_page_button import switch_page
 import datetime
@@ -17,7 +19,8 @@ if st.session_state["authentication_status"]:
     df_accuracy = read_df(ACCURACY_MONITORING_TAB, date_col=["ds"])
     #df_actuals = read_df(ACTUALS_NONAGG_TAB, date_col=["ds"])
     cat1, cat2, cat3 = calculate_categories(df_accuracy)
-    
+    default_model = st.session_state["default_model"]
+
     with st.sidebar:
         category_type = st.selectbox("Category Type", cat1)
         outlet_type = st.selectbox("Outlet Type", cat2)
@@ -83,21 +86,24 @@ if st.session_state["authentication_status"]:
 
     mape_dinner_rf = MAPE(accu_preprocessed_filtered_agg.loc[accu_preprocessed_filtered_agg.meal_category=='dinner'].metric_actual, 
                               accu_preprocessed_filtered_agg.loc[accu_preprocessed_filtered_agg.meal_category=='dinner'].metric_forecast_rf)
-
-
-    #if meals_preprocessed_filtered.empty:
-    #    st.warning("No data for available for the selection.")
-    #    st.stop()
+ 
+    selected_model = default_model.loc[default_model.category==category_selected, "default_model"].values[0]
     
     if accu_preprocessed_filtered.empty:
         st.warning("No data for available for the selection.")
         st.stop()
 
     with st.container():
+        st.markdown("## Mean Average Percentage Error (MAPE)")
+        with st.expander("See calculation explanation"):
+            st.markdown('''
+                           - For each date do a sum of sales per lunch hours and dinner hours for both actuals and forecasts  
+                           - Then for each part of day calculate 100 * ABS(actuals - forecast) / forecast  
+                           - Finally calculate mean over the period defined in the sidebar  
+                        ''')
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("### MAPE (lunch):")
-            st.markdown("(Mean Average Percentage Error)")
+            st.markdown("### Lunch")
 
             col11, col12, col13 = st.columns(3)
             with col11:
@@ -108,8 +114,7 @@ if st.session_state["authentication_status"]:
                 st.metric("Random Forest", f"{mape_lunch_rf:.2f} %", f"{15 - mape_lunch_rf:.2f} %")
             
         with col2:
-            st.markdown("### MAPE (dinner):")
-            st.markdown("(Mean Average Percentage Error)")
+            st.markdown("### Dinner")
             
             col21, col22, col23 = st.columns(3)
             with col21:
@@ -118,25 +123,27 @@ if st.session_state["authentication_status"]:
                 st.metric("LightGBM", f"{mape_dinner_lgbm:.2f} %", f"{15 - mape_dinner_lgbm:.2f} %")
             with col23:
                 st.metric("Random Forest", f"{mape_dinner_rf:.2f} %", f"{15 - mape_dinner_rf:.2f} %")
-
-
+        
+        st.markdown(f"#### :{colors[selected_model]}[Default model: {selected_model}]")
     col1, col2 = st.columns(2)
-    #with col1:
-    #figure, raw_data = st.tabs(["figure", "raw_data"])
-    
     
     fig0 = create_series_plot_new(accu_preprocessed_filtered)
     st.plotly_chart(fig0, use_container_width=True, theme="streamlit")
     
     with st.sidebar:
         with st.form("my_form"):
-            selectbox = st.selectbox("Select default model", ["Prophet", "LightGBM", "Random Forest"])
+            selected = st.selectbox("Select default model", colors.keys(), index=list(colors.keys()).index(selected_model))
             
             # Every form must have a submit button.
             submitted = st.form_submit_button("Submit")
             if submitted:
-                st.warning("Not implemented yet. TODO: Update default model in Keboola")
-
+                file = '.default_model.csv'
+                update_default_model(selected, category_selected, file=file)
+                res = create_or_update_table("default_model")
+                if res[0]:
+                    default_model.loc[default_model.category==category_selected, "default_model"] = selected
+                st.write(res[1])
+                
     
     
     
