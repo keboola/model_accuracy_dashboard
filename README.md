@@ -1,21 +1,10 @@
-# 📦 Streamlit App Starter Kit 
-```
-⬆️ (Replace above with your app's name)
-```
+# 📦 Model accuracy dashboard 
 
-Description of the app ...
+Model accuracy dashboard is an application developed for increasing forecast quality observability.
+It communicates with Keboola Connection platform, and accesses the data. The goal of the application
+is to show actual data vs forecasts as calculated by multiple models. 
 
-## Demo App
+It has two pages:
+1. "Accuracies" displays a global view on all categories and the forecast accuryc
+2. "Individual forecast" zooms in on a particular location, shows a time series and compares various forecasts.
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://starter-kit.streamlitapp.com/)
-
-## Section Heading
-
-This is filler text, please replace this with text for this section.
-
-## Further Reading
-
-This is filler text, please replace this with a explanatory text about further relevant resources for this repo
-- Resource 1
-- Resource 2
-- Resource 3
