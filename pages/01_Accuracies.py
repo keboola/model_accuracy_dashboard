@@ -63,9 +63,9 @@ def color_negative_red(value):
   values.
   """
 
-  if value < 15:
+  if float(value) < 15:
     color = 'green'
-  elif value > 0:
+  elif (value) > 0:
     color = 'red'
   else:
     color = 'black'
@@ -86,11 +86,11 @@ with t1:
                                                           ))
 
 with t2:
-    cols = [c for c in summary_df.columns if not c.endswith("_mean")]
+    cols = [c for c in summary_df.columns if not c.endswith("_mean") and c!="updated_timestamp"]
     st.dataframe(summary_df[cols].style.applymap(color_negative_red,
-                                                 subset = [c for c in cols if (c!="default_model" and c!="updated_timetamp")]
+                                                 subset = [c for c in cols if c!="default_model"]
                                                  ).format('{:.2f} %', 
-                                                          subset=[c for c in cols if (c!="default_model" and c!="updated_timetamp")]
+                                                          subset=[c for c in cols if c!="default_model"]
                                                           ))
 
 
